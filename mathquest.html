@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathQuest: Reino das Equações</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;700&family=Lato:wght@400;700&display=swap');
+
+  :root {
+    --parchment:   #f5e6c8;
+    --parchment-dark: #e8d09a;
+    --ink:         #2c1810;
+    --forest:      #2d6a4f;
+    --forest-light:#52b788;
+    --gold:        #c9a227;
+    --gold-light:  #f4d06f;
+    --crimson:     #9b2335;
+    --sky:         #3a7bd5;
+    --sky-light:   #74b3ff;
+    --stone:       #6b6156;
+    --stone-light: #b5a89a;
+    --glow:        #fff3b0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: #1a0e05;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, #3a1a05 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, #0d1f0a 0%, transparent 60%);
+  }
+
+  /* ── CASTLE BACKGROUND SILHOUETTE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='300' viewBox='0 0 1200 300'%3E%3Cpath fill='%23110900' d='M0 300V180h40v-30h20v30h40V160h20v-40h20v40h20V160h20v40h40V180h20v-30h20v30h40V160h20v-40h20v40h20V160h20v40h40V180h20v-30h20v30h40V160h20v-40h20v40h20V160h20v40h100V180h40v-30h20v30h40V160h20v-40h20v40h20V160h20v40h40V180h20v-30h20v30h40V160h20v-40h20v40h20V160h20v40h60V300z'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-position: bottom;
+    opacity: .5;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── STARS ── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 5%,  rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 12%, rgba(255,255,255,.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 8%,  rgba(255,255,255,.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 18%, rgba(255,255,255,.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 3%,  rgba(255,255,255,.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 22%, rgba(255,255,255,.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 6%,  rgba(255,255,255,.6) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── MAIN CARD ── */
+  #game-container {
+    position: relative; z-index: 1;
+    background: linear-gradient(160deg, var(--parchment) 0%, #f0d9a8 100%);
+    border-radius: 16px;
+    border: 4px solid var(--gold);
+    box-shadow:
+      0 0 0 8px #3a1a05,
+      0 0 0 10px var(--gold),
+      0 0 60px rgba(201,162,39,.4),
+      0 24px 80px rgba(0,0,0,.7);
+    width: 100%;
+    max-width: 780px;
+    overflow: hidden;
+  }
+
+  /* ── CORNER ORNAMENTS ── */
+  #game-container::before,
+  #game-container::after {
+    content: '⚜';
+    position: absolute;
+    font-size: 28px;
+    color: var(--gold);
+    line-height: 1;
+    top: 10px;
+  }
+  #game-container::before { left: 14px; }
+  #game-container::after  { right: 14px; }
+
+  /* ── HEADER BANNER ── */
+  #header {
+    background: linear-gradient(135deg, #1c0a02 0%, #3b1a06 50%, #1c0a02 100%);
+    padding: 18px 60px 14px;
+    text-align: center;
+    border-bottom: 3px solid var(--gold);
+    position: relative;
+  }
+  #header::before, #header::after {
+    content: '⚔'; font-size: 22px; color: var(--gold-light);
+    position: absolute; top: 50%; transform: translateY(-50%);
+  }
+  #header::before { left: 20px; }
+  #header::after  { right: 20px; }
+
+  #header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.3rem, 4vw, 1.9rem);
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: .08em;
+    text-shadow: 0 2px 8px rgba(0,0,0,.6), 0 0 20px rgba(244,208,111,.3);
+  }
+  #header .subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: .78rem;
+    color: var(--stone-light);
+    letter-spacing: .18em;
+    margin-top: 3px;
+  }
+
+  /* ── HUD ── */
+  #hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #2d1a08 0%, #3d2510 50%, #2d1a08 100%);
+    border-bottom: 2px solid var(--gold);
+    flex-wrap: wrap;
+  }
+
+  .hud-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(0,0,0,.35);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'Cinzel', serif;
+    font-size: .8rem;
+    color: var(--gold-light);
+    white-space: nowrap;
+  }
+  .hud-pill .icon { font-size: 1rem; }
+
+  /* ── PROGRESS BAR ── */
+  #progress-wrap {
+    flex: 1; min-width: 120px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  #progress-label {
+    font-family: 'Cinzel', serif;
+    font-size: .68rem;
+    color: var(--stone-light);
+    text-align: center;
+    letter-spacing: .1em;
+  }
+  #progress-track {
+    background: rgba(0,0,0,.4);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    height: 14px;
+    overflow: hidden;
+  }
+  #progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--forest-light), var(--gold-light));
+    border-radius: 8px;
+    transition: width .5s ease;
+    box-shadow: 0 0 8px rgba(244,208,111,.5);
+  }
+
+  /* ── MAIN CONTENT ── */
+  #main {
+    padding: 24px 28px 28px;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ── CATEGORY BADGE ── */
+  #category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--forest);
+    color: #d8f3dc;
+    font-family: 'Cinzel', serif;
+    font-size: .75rem;
+    letter-spacing: .12em;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--forest-light);
+    align-self: flex-start;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  #category-badge .cat-icon { font-size: 1rem; }
+
+  /* ── QUESTION SCROLL ── */
+  #question-scroll {
+    background: linear-gradient(160deg, #fff8e7 0%, #fdf0cb 100%);
+    border: 2px solid var(--parchment-dark);
+    border-radius: 12px;
+    padding: 20px 22px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.08), 0 3px 12px rgba(0,0,0,.1);
+    position: relative;
+  }
+  #question-scroll::before {
+    content: '';
+    position: absolute; top: -1px; left: 30px; right: 30px; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+    border-radius: 2px;
+  }
+
+  #question-text {
+    font-size: clamp(.95rem, 2.5vw, 1.1rem);
+    color: var(--ink);
+    line-height: 1.65;
+    font-weight: 400;
+  }
+  #question-text strong { color: var(--crimson); font-weight: 700; }
+
+  /* ── CHART CONTAINER ── */
+  #chart-container {
+    margin-top: 14px;
+    background: #fff;
+    border: 1.5px solid var(--parchment-dark);
+    border-radius: 8px;
+    overflow: hidden;
+    display: none;
+  }
+  #chart-container canvas {
+    display: block;
+    width: 100% !important;
+    max-height: 220px;
+  }
+
+  /* ── OPTIONS GRID ── */
+  #options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media(max-width: 520px) {
+    #options-grid { grid-template-columns: 1fr; }
+  }
+
+  .option-btn {
+    background: linear-gradient(135deg, #fff8e7 0%, #f5e6c8 100%);
+    border: 2px solid var(--parchment-dark);
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-family: 'Lato', sans-serif;
+    font-size: .95rem;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: all .18s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .option-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--gold-light);
+    opacity: 0;
+    transition: opacity .18s;
+  }
+  .option-btn:hover:not(:disabled)::before { opacity: .15; }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,.15);
+  }
+  .option-btn:active:not(:disabled) { transform: translateY(0); }
+
+  .option-btn .letter {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; min-width: 26px;
+    background: var(--forest);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: .78rem;
+    font-weight: 700;
+    border-radius: 50%;
+    position: relative; z-index: 1;
+    transition: background .18s;
+  }
+  .option-btn:hover:not(:disabled) .letter { background: var(--gold); }
+  .option-btn span.text { position: relative; z-index: 1; }
+
+  .option-btn.correct {
+    background: linear-gradient(135deg, #d8f3dc, #b7e4c7) !important;
+    border-color: var(--forest) !important;
+    animation: pulse-correct .4s ease;
+  }
+  .option-btn.correct .letter { background: var(--forest) !important; }
+
+  .option-btn.wrong {
+    background: linear-gradient(135deg, #fde8e8, #f5c6c6) !important;
+    border-color: var(--crimson) !important;
+  }
+  .option-btn.wrong .letter { background: var(--crimson) !important; }
+
+  @keyframes pulse-correct {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── FEEDBACK BOX ── */
+  #feedback-box {
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: .92rem;
+    line-height: 1.55;
+    display: none;
+    border-left: 5px solid;
+    animation: slide-in .3s ease;
+  }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #feedback-box.correct-fb {
+    background: #d8f3dc;
+    border-color: var(--forest);
+    color: #1b4332;
+    display: block;
+  }
+  #feedback-box.wrong-fb {
+    background: #fde8e8;
+    border-color: var(--crimson);
+    color: #6b1a1a;
+    display: block;
+  }
+  #feedback-box .fb-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+
+  /* ── NEXT BUTTON ── */
+  #next-btn {
+    display: none;
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--gold), #a07a10);
+    color: var(--ink);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-family: 'Cinzel', serif;
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .06em;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    transition: all .18s;
+  }
+  #next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.3); }
+  #next-btn:active { transform: translateY(0); }
+
+  /* ── END SCREEN ── */
+  #end-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 10px 0 8px;
+  }
+  #end-trophy { font-size: 5rem; animation: float 2s ease-in-out infinite; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-10px); }
+  }
+  #end-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  #end-score-display {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--forest);
+  }
+  #end-rank {
+    background: linear-gradient(135deg, #fff3b0, #f4d06f);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-size: .95rem;
+    color: var(--ink);
+    line-height: 1.6;
+    max-width: 420px;
+  }
+  #end-rank .rank-label {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--crimson);
+  }
+
+  /* ── RESTART BUTTON ── */
+  #restart-btn {
+    background: linear-gradient(135deg, var(--forest), #1b4332);
+    color: #d8f3dc;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 32px;
+    font-family: 'Cinzel', serif;
+    font-size: .95rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .06em;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    transition: all .18s;
+  }
+  #restart-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+  /* ── FOOTER ── */
+  #footer {
+    padding: 8px 20px;
+    background: #2d1a08;
+    border-top: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  #footer span {
+    font-family: 'Cinzel', serif;
+    font-size: .68rem;
+    color: var(--stone-light);
+    letter-spacing: .08em;
+  }
+  #sound-toggle {
+    background: transparent;
+    border: 1px solid var(--stone);
+    border-radius: 6px;
+    padding: 3px 10px;
+    color: var(--stone-light);
+    font-size: .75rem;
+    cursor: pointer;
+    transition: all .18s;
+  }
+  #sound-toggle:hover { border-color: var(--gold-light); color: var(--gold-light); }
+
+  /* ── LIVES ── */
+  .heart { color: #e63946; font-size: 1rem; }
+
+  /* ── QUESTION NUMBER ── */
+  #q-counter {
+    font-family: 'Cinzel', serif;
+    font-size: .78rem;
+    color: var(--stone);
+    text-align: right;
+    align-self: flex-end;
+  }
+
+  /* ── COMBO FLASH ── */
+  #combo-flash {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--gold), #c9801a);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 10px 26px;
+    border-radius: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+  }
+  #combo-flash.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="combo-flash">🔥 COMBO!</div>
+
+<div id="game-container">
+
+  <!-- HEADER -->
+  <div id="header">
+    <h1>⚔ MathQuest: Reino das Equações ⚔</h1>
+    <div class="subtitle">Jornada pelo Conhecimento Matemático</div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-pill"><span class="icon">⭐</span><span id="score-display">0 pts</span></div>
+    <div id="progress-wrap">
+      <div id="progress-label">PROGRESSO DA JORNADA</div>
+      <div id="progress-track"><div id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="hud-pill"><span class="icon">❤️</span><span id="lives-display">❤ ❤ ❤</span></div>
+    <div class="hud-pill"><span class="icon">🔥</span><span id="combo-display">×1</span></div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div id="main">
+
+    <!-- QUESTION VIEW -->
+    <div id="question-view">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div id="category-badge"><span class="cat-icon">📜</span><span id="cat-name">Carregando...</span></div>
+        <div id="q-counter">Questão <span id="q-num">1</span> de <span id="q-total">10</span></div>
+      </div>
+
+      <div id="question-scroll">
+        <div id="question-text">Carregando...</div>
+        <div id="chart-container"><canvas id="chart-canvas"></canvas></div>
+      </div>
+
+      <div id="options-grid"></div>
+      <div id="feedback-box"></div>
+      <button id="next-btn">Avançar →</button>
+    </div>
+
+    <!-- END SCREEN -->
+    <div id="end-screen">
+      <div id="end-trophy">🏆</div>
+      <div id="end-title">Jornada Completa!</div>
+      <div id="end-score-display"></div>
+      <div id="end-rank"></div>
+      <button id="restart-btn">🗡 Nova Jornada</button>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div id="footer">
+    <span>🏰 Reino das Equações — Ensino Médio</span>
+    <button id="sound-toggle">🔊 Som: ON</button>
+  </div>
+
+</div>
+
+<!-- Chart.js for graph questions -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  SOUND ENGINE (Web Audio API – tiny bleeps)
+// ══════════════════════════════════════════════════════════════
+let soundOn = true;
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq, dur, type='sine', vol=0.18) {
+  if (!soundOn) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+
+function playCorrect() {
+  beep(523, .12); setTimeout(()=>beep(659,.12),100); setTimeout(()=>beep(784,.2),200);
+}
+function playWrong() {
+  beep(220,.15,'sawtooth'); setTimeout(()=>beep(180,.2,'sawtooth'),120);
+}
+function playNext() { beep(440,.08,'triangle',.1); }
+function playCombo() {
+  beep(880,.1); setTimeout(()=>beep(1046,.1),80); setTimeout(()=>beep(1318,.2),160);
+}
+function playEnd() {
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.25),i*140));
+}
+
+document.getElementById('sound-toggle').addEventListener('click', function() {
+  soundOn = !soundOn;
+  this.textContent = soundOn ? '🔊 Som: ON' : '🔇 Som: OFF';
+});
+
+// ══════════════════════════════════════════════════════════════
+//  QUESTION BANK
+// ══════════════════════════════════════════════════════════════
+const QUESTIONS = [
+
+  // ── FUNÇÃO DO 1º GRAU ────────────────────────────────────────
+  {
+    category: '📐 Função do 1º Grau',
+    text: 'Um mago cobra <strong>R$ 20</strong> de taxa fixa mais <strong>R$ 5</strong> por poção encantada. Qual é a função que representa o custo total <em>C</em> em função do número de poções <em>x</em>?',
+    options: ['C(x) = 5x + 20', 'C(x) = 20x + 5', 'C(x) = 25x', 'C(x) = 5x − 20'],
+    correct: 0,
+    explanation: 'A taxa fixa é o termo independente (20) e o valor por poção é o coeficiente de x (5). Logo: <strong>C(x) = 5x + 20</strong>.'
+  },
+  {
+    category: '📐 Função do 1º Grau',
+    text: 'A função <strong>f(x) = 3x − 6</strong> representa a quantidade de moedas de ouro que um cavaleiro ganha por dia. Quando <strong>f(x) = 0</strong>, qual é o valor de <em>x</em>?',
+    options: ['x = 2', 'x = 3', 'x = 6', 'x = −2'],
+    correct: 0,
+    explanation: 'Fazemos 3x − 6 = 0 → 3x = 6 → <strong>x = 2</strong>. Esse ponto é a raiz (zero) da função.'
+  },
+  {
+    category: '📐 Função do 1º Grau',
+    text: 'A função <strong>f(x) = −2x + 8</strong> é crescente ou decrescente?',
+    options: ['Decrescente (coef. angular < 0)', 'Crescente (coef. angular > 0)', 'Constante', 'Não é função do 1º grau'],
+    correct: 0,
+    explanation: 'O coeficiente angular é <strong>−2 < 0</strong>, então a função é <strong>decrescente</strong>: à medida que x aumenta, f(x) diminui.'
+  },
+  {
+    category: '📐 Função do 1º Grau',
+    text: 'Uma masmorra tem <strong>100 monstros</strong>. O herói derrota <strong>15 por hora</strong>. A função que representa os monstros restantes <em>M(t)</em> após <em>t</em> horas é:',
+    options: ['M(t) = 100 − 15t', 'M(t) = 15t + 100', 'M(t) = 100t − 15', 'M(t) = 15 − 100t'],
+    correct: 0,
+    explanation: 'Começa com 100 e diminui 15 por hora: <strong>M(t) = 100 − 15t</strong>. É uma função decrescente.'
+  },
+
+  // ── PORCENTAGEM ──────────────────────────────────────────────
+  {
+    category: '💰 Porcentagem',
+    text: 'O rei colocou <strong>R$ 800</strong> no tesouro e recebeu <strong>15% de juros</strong>. Quanto ele recebeu de juros?',
+    options: ['R$ 120', 'R$ 100', 'R$ 150', 'R$ 80'],
+    correct: 0,
+    explanation: '15% de 800 = (15 ÷ 100) × 800 = <strong>R$ 120</strong>. Basta multiplicar o valor pela fração centesimal.'
+  },
+  {
+    category: '💰 Porcentagem',
+    text: 'Um comerciante vendeu uma espada por <strong>R$ 240</strong>, com desconto de <strong>20%</strong>. Qual era o preço original?',
+    options: ['R$ 300', 'R$ 288', 'R$ 260', 'R$ 320'],
+    correct: 0,
+    explanation: 'Após 20% de desconto, pagou 80% do preço. Então: 240 ÷ 0,80 = <strong>R$ 300</strong>.'
+  },
+  {
+    category: '💰 Porcentagem',
+    text: 'Em uma batalha, <strong>45 dos 180 soldados</strong> usavam armadura de dragão. Que porcentagem isso representa?',
+    options: ['25%', '20%', '30%', '45%'],
+    correct: 0,
+    explanation: '(45 ÷ 180) × 100 = 0,25 × 100 = <strong>25%</strong>.'
+  },
+  {
+    category: '💰 Porcentagem',
+    text: 'O preço de uma poção era <strong>R$ 50</strong> e subiu <strong>40%</strong>. Qual é o novo preço?',
+    options: ['R$ 70', 'R$ 90', 'R$ 60', 'R$ 80'],
+    correct: 0,
+    explanation: 'Aumento de 40%: 50 × 1,40 = <strong>R$ 70</strong>. Ou: 40% de 50 = 20; 50 + 20 = 70.'
+  },
+
+  // ── REGRA DE TRÊS ────────────────────────────────────────────
+  {
+    category: '⚖️ Regra de Três',
+    text: 'Um ferreiro produz <strong>12 espadas em 3 dias</strong>. Quantas espadas ele faz em <strong>7 dias</strong>?',
+    options: ['28', '24', '21', '36'],
+    correct: 0,
+    explanation: '12 espadas → 3 dias. x espadas → 7 dias. x = (12 × 7) ÷ 3 = <strong>28 espadas</strong>.'
+  },
+  {
+    category: '⚖️ Regra de Três',
+    text: '<strong>5 arqueiros</strong> defendem um castelo e consomem <strong>150 flechas por dia</strong>. Quantas flechas <strong>8 arqueiros</strong> consomem por dia?',
+    options: ['240', '200', '180', '300'],
+    correct: 0,
+    explanation: '5 → 150 flechas. 8 → x. x = (150 × 8) ÷ 5 = <strong>240 flechas</strong>.'
+  },
+  {
+    category: '⚖️ Regra de Três',
+    text: 'Uma caravana percorre <strong>180 km em 4 horas</strong>. Quanto tempo leva para percorrer <strong>270 km</strong> na mesma velocidade?',
+    options: ['6 horas', '5 horas', '7 horas', '8 horas'],
+    correct: 0,
+    explanation: '180 km → 4h. 270 km → t. t = (270 × 4) ÷ 180 = <strong>6 horas</strong>.'
+  },
+  {
+    category: '⚖️ Regra de Três',
+    text: '<strong>4 magos</strong> lançam um feitiço em <strong>20 minutos</strong>. Quantos magos são necessários para lançar o mesmo feitiço em <strong>5 minutos</strong>?',
+    options: ['16 magos', '8 magos', '12 magos', '10 magos'],
+    correct: 0,
+    explanation: 'Relação inversa (mais magos = menos tempo). 4 × 20 = x × 5 → x = 80 ÷ 5 = <strong>16 magos</strong>.'
+  },
+
+  // ── EQUAÇÕES SIMPLES ─────────────────────────────────────────
+  {
+    category: '🔮 Equações Simples',
+    text: 'Resolva a equação: <strong>3x + 9 = 24</strong>',
+    options: ['x = 5', 'x = 3', 'x = 7', 'x = 11'],
+    correct: 0,
+    explanation: '3x = 24 − 9 = 15 → x = 15 ÷ 3 = <strong>5</strong>. Sempre isole o x!'
+  },
+  {
+    category: '🔮 Equações Simples',
+    text: 'O dobro de um número mais <strong>4</strong> é igual a <strong>18</strong>. Qual é o número?',
+    options: ['7', '9', '6', '8'],
+    correct: 0,
+    explanation: '2x + 4 = 18 → 2x = 14 → x = <strong>7</strong>.'
+  },
+  {
+    category: '🔮 Equações Simples',
+    text: 'Resolva: <strong>5x − 3 = 2x + 9</strong>',
+    options: ['x = 4', 'x = 3', 'x = 6', 'x = 2'],
+    correct: 0,
+    explanation: '5x − 2x = 9 + 3 → 3x = 12 → x = <strong>4</strong>. Separe os termos com x de um lado.'
+  },
+  {
+    category: '🔮 Equações Simples',
+    text: 'Um dragão coleciona tesouros. Ele tem <strong>x + 15</strong> moedas de ouro e <strong>3x − 5</strong> moedas de prata. Se as quantidades são iguais, quanto vale <em>x</em>?',
+    options: ['x = 10', 'x = 5', 'x = 20', 'x = 8'],
+    correct: 0,
+    explanation: 'x + 15 = 3x − 5 → 20 = 2x → x = <strong>10</strong>.'
+  },
+
+  // ── INTERPRETAÇÃO DE GRÁFICOS ────────────────────────────────
+  {
+    category: '📊 Gráficos',
+    text: 'O gráfico abaixo mostra a arrecadação de impostos do reino (em milhares de moedas) ao longo de 4 anos. Em qual ano houve a maior arrecadação?',
+    options: ['Ano 3', 'Ano 1', 'Ano 2', 'Ano 4'],
+    correct: 0,
+    chart: {
+      type: 'bar',
+      labels: ['Ano 1','Ano 2','Ano 3','Ano 4'],
+      data:   [42, 58, 75, 61],
+      label:  'Arrecadação (mil moedas)',
+      color:  'rgba(45,106,79,0.7)'
+    },
+    explanation: 'O maior valor no gráfico de barras é <strong>75 mil moedas</strong>, que corresponde ao <strong>Ano 3</strong>.'
+  },
+  {
+    category: '📊 Gráficos',
+    text: 'O gráfico de linha mostra a temperatura da Floresta Encantada ao longo de 5 meses. Qual foi a variação de temperatura do Mês 1 ao Mês 5?',
+    options: ['+15°C', '+10°C', '−5°C', '+20°C'],
+    correct: 0,
+    chart: {
+      type: 'line',
+      labels: ['Mês 1','Mês 2','Mês 3','Mês 4','Mês 5'],
+      data:   [10, 14, 18, 22, 25],
+      label:  'Temperatura (°C)',
+      color:  'rgba(58,123,213,0.8)'
+    },
+    explanation: 'No Mês 1 a temperatura era 10°C e no Mês 5 era 25°C. Variação = 25 − 10 = <strong>+15°C</strong>.'
+  },
+  {
+    category: '📊 Gráficos',
+    text: 'O gráfico mostra as vendas de poções em 4 aldeias. Qual aldeia vendeu aproximadamente o <strong>dobro</strong> da Aldeia A?',
+    options: ['Aldeia C', 'Aldeia B', 'Aldeia D', 'Não há'],
+    correct: 0,
+    chart: {
+      type: 'bar',
+      labels: ['Aldeia A','Aldeia B','Aldeia C','Aldeia D'],
+      data:   [30, 45, 60, 50],
+      label:  'Poções vendidas',
+      color:  'rgba(155,35,53,0.65)'
+    },
+    explanation: 'Aldeia A vendeu 30. O dobro é 60. A <strong>Aldeia C</strong> vendeu exatamente 60 poções.'
+  },
+];
+
+// ══════════════════════════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════════════════════════
+const TOTAL_Q   = 10;
+const MAX_LIVES = 3;
+
+let state = {
+  questions:    [],
+  currentIndex: 0,
+  score:        0,
+  lives:        MAX_LIVES,
+  combo:        0,
+  answered:     false,
+  chartInstance: null,
+};
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickQuestions() {
+  // Ensure at least 1 from each category, then fill randomly
+  const cats = {};
+  QUESTIONS.forEach(q => {
+    const k = q.category;
+    if (!cats[k]) cats[k] = [];
+    cats[k].push(q);
+  });
+  let selected = [];
+  Object.values(cats).forEach(arr => selected.push(shuffle(arr)[0]));
+  const remaining = QUESTIONS.filter(q => !selected.includes(q));
+  selected = [...selected, ...shuffle(remaining)].slice(0, TOTAL_Q);
+  return shuffle(selected);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════════════════
+function renderHUD() {
+  document.getElementById('score-display').textContent = state.score + ' pts';
+  document.getElementById('combo-display').textContent = '×' + (state.combo || 1);
+  const fill = (state.currentIndex / TOTAL_Q) * 100;
+  document.getElementById('progress-fill').style.width = fill + '%';
+  const hearts = '❤'.repeat(state.lives) + '🖤'.repeat(MAX_LIVES - state.lives);
+  document.getElementById('lives-display').textContent = hearts;
+}
+
+function renderQuestion() {
+  const q = state.questions[state.currentIndex];
+  state.answered = false;
+
+  document.getElementById('q-num').textContent   = state.currentIndex + 1;
+  document.getElementById('q-total').textContent = TOTAL_Q;
+  document.getElementById('cat-name').textContent = q.category;
+  document.getElementById('question-text').innerHTML = q.text;
+
+  // Chart
+  const chartWrap = document.getElementById('chart-container');
+  if (q.chart) {
+    chartWrap.style.display = 'block';
+    renderChart(q.chart);
+  } else {
+    chartWrap.style.display = 'none';
+    if (state.chartInstance) { state.chartInstance.destroy(); state.chartInstance = null; }
+  }
+
+  // Options – shuffle display order but track correct
+  const letters = ['A','B','C','D'];
+  const indices = shuffle([0,1,2,3]);
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+
+  indices.forEach((origIdx, displayIdx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="letter">${letters[displayIdx]}</span><span class="text">${q.options[origIdx]}</span>`;
+    btn.dataset.orig = origIdx;
+    btn.addEventListener('click', () => handleAnswer(origIdx, q.correct, btn));
+    grid.appendChild(btn);
+  });
+
+  // Reset feedback & next btn
+  const fb = document.getElementById('feedback-box');
+  fb.className = ''; fb.style.display = 'none'; fb.innerHTML = '';
+  document.getElementById('next-btn').style.display = 'none';
+
+  renderHUD();
+}
+
+function renderChart(cfg) {
+  const canvas = document.getElementById('chart-canvas');
+  if (state.chartInstance) { state.chartInstance.destroy(); state.chartInstance = null; }
+
+  state.chartInstance = new Chart(canvas, {
+    type: cfg.type,
+    data: {
+      labels: cfg.labels,
+      datasets: [{
+        label: cfg.label,
+        data:  cfg.data,
+        backgroundColor: cfg.color,
+        borderColor:     cfg.color.replace('0.7','1').replace('0.8','1').replace('0.65','1'),
+        borderWidth: 2,
+        tension: .3,
+        fill: cfg.type === 'line',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+  canvas.parentElement.style.height = '200px';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HANDLE ANSWER
+// ══════════════════════════════════════════════════════════════
+function handleAnswer(chosen, correct, clickedBtn) {
+  if (state.answered) return;
+  state.answered = true;
+  playNext();
+
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => {
+    b.disabled = true;
+    if (parseInt(b.dataset.orig) === correct) b.classList.add('correct');
+  });
+
+  const fb = document.getElementById('feedback-box');
+  const q  = state.questions[state.currentIndex];
+
+  if (chosen === correct) {
+    // Correct
+    state.combo++;
+    const pts = 10 * Math.min(state.combo, 4);
+    state.score += pts;
+    clickedBtn.classList.add('correct');
+    playCorrect();
+
+    fb.className = 'correct-fb';
+    fb.innerHTML = `<div class="fb-title">⚔ Correto! +${pts} pontos${state.combo > 1 ? ' 🔥 COMBO ×'+state.combo : ''}</div>
+                    <div>${q.explanation}</div>`;
+
+    if (state.combo >= 3) {
+      playCombo();
+      const flash = document.getElementById('combo-flash');
+      flash.textContent = '🔥 COMBO ×' + state.combo + '!';
+      flash.classList.add('show');
+      setTimeout(() => flash.classList.remove('show'), 1600);
+    }
+  } else {
+    // Wrong
+    state.combo = 0;
+    state.lives = Math.max(0, state.lives - 1);
+    clickedBtn.classList.add('wrong');
+    playWrong();
+
+    fb.className = 'wrong-fb';
+    fb.innerHTML = `<div class="fb-title">💀 Não desta vez...</div>
+                    <div>${q.explanation}</div>
+                    <div style="margin-top:6px;font-size:.82rem;opacity:.75">Vidas restantes: ${'❤'.repeat(state.lives)}${'🖤'.repeat(MAX_LIVES-state.lives)}</div>`;
+  }
+
+  renderHUD();
+  document.getElementById('next-btn').style.display = (state.currentIndex < TOTAL_Q - 1 && state.lives > 0) ? 'block' : 'none';
+
+  // Check game-over or last question
+  if (state.lives === 0) {
+    setTimeout(showEnd, 900);
+  } else if (state.currentIndex === TOTAL_Q - 1) {
+    setTimeout(showEnd, 1200);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  NEXT / END
+// ══════════════════════════════════════════════════════════════
+document.getElementById('next-btn').addEventListener('click', () => {
+  playNext();
+  state.currentIndex++;
+  renderQuestion();
+});
+
+function showEnd() {
+  playEnd();
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('question-view').style.display = 'none';
+
+  const pct = Math.round((state.score / (TOTAL_Q * 40)) * 100);
+  let rank, emoji;
+  if (state.lives === 0) {
+    rank = '💀 Herói Caído'; emoji = '😢';
+    document.getElementById('end-trophy').textContent = '💀';
+  } else if (pct >= 90) {
+    rank = '👑 Lenda do Reino'; emoji = '🏆';
+  } else if (pct >= 70) {
+    rank = '⚔ Cavaleiro Mestre'; emoji = '⚔';
+  } else if (pct >= 50) {
+    rank = '🛡 Escudeiro Corajoso'; emoji = '🛡';
+  } else {
+    rank = '📜 Aprendiz em Treinamento'; emoji = '📚';
+    document.getElementById('end-trophy').textContent = '📚';
+  }
+
+  document.getElementById('end-title').textContent = state.lives > 0 ? 'Jornada Completa!' : 'O Reino Precisa de Você!';
+  document.getElementById('end-score-display').textContent = `Pontuação Final: ${state.score} pontos`;
+  document.getElementById('end-rank').innerHTML =
+    `<div class="rank-label">${rank}</div>
+     <div style="margin-top:8px">Você acertou e acumulou <strong>${state.score} pts</strong>.<br>
+     ${state.lives > 0
+       ? 'Continue praticando para dominar as matemáticas do reino! 🏰'
+       : 'Estude os tópicos com atenção e tente novamente! 📚'
+     }</div>`;
+
+  const end = document.getElementById('end-screen');
+  end.style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RESTART
+// ══════════════════════════════════════════════════════════════
+function startGame() {
+  state.questions    = pickQuestions();
+  state.currentIndex = 0;
+  state.score        = 0;
+  state.lives        = MAX_LIVES;
+  state.combo        = 0;
+  state.answered     = false;
+
+  if (state.chartInstance) { state.chartInstance.destroy(); state.chartInstance = null; }
+
+  document.getElementById('end-screen').style.display = 'none';
+  document.getElementById('question-view').style.display = 'block';
+  document.getElementById('progress-fill').style.width = '0%';
+
+  renderQuestion();
+}
+
+document.getElementById('restart-btn').addEventListener('click', startGame);
+
+// ── START ──
+startGame();
+</script>
+</body>
+</html>
